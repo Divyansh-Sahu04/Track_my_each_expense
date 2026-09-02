@@ -82,13 +82,24 @@ def get_user_by_email(email):
     return user
 
 
-def create_user(name, email, password_hash):
+def get_user_by_id(user_id):
     conn = get_db()
-    cursor = conn.execute(
-        "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
-        (name, email, password_hash),
-    )
-    user_id = cursor.lastrowid
-    conn.commit()
+    user = conn.execute(
+        "SELECT * FROM users WHERE id = ?", (user_id,)
+    ).fetchone()
     conn.close()
-    return user_id
+    return user
+
+
+def create_user(name, email, password):
+    conn = get_db()
+    password_hash = generate_password_hash(password)
+    try:
+        cursor = conn.execute(
+            "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
+            (name, email, password_hash),
+        )
+        conn.commit()
+        return cursor.lastrowid
+    finally:
+        conn.close()
