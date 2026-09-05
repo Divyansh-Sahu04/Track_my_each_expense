@@ -4,6 +4,12 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import check_password_hash
 
 from database.db import get_db, init_db, seed_db, create_user, get_user_by_email, get_user_by_id
+from database.queries import (
+    get_user_profile_info,
+    get_summary_stats,
+    get_recent_transactions,
+    get_category_breakdown,
+)
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-key-change-in-production"
@@ -100,36 +106,18 @@ def logout():
 
 @app.route("/profile")
 def profile():
-    if not session.get("user_id"):
+    user_id = session.get("user_id")
+    if not user_id:
         return redirect(url_for("login"))
 
-    stats = {
-        "total_spent": 289.14,
-        "transaction_count": 8,
-        "top_category": "Food",
-    }
-
-    transactions = [
-        {"date": "2026-08-20", "description": "Dinner with friends", "category": "Food", "amount": 32.40},
-        {"date": "2026-08-18", "description": "Miscellaneous", "category": "Other", "amount": 8.30},
-        {"date": "2026-08-15", "description": "New shoes", "category": "Shopping", "amount": 60.20},
-        {"date": "2026-08-12", "description": "Movie ticket", "category": "Entertainment", "amount": 15.75},
-        {"date": "2026-08-09", "description": "Pharmacy purchase", "category": "Health", "amount": 25.00},
-    ]
-
-    categories = [
-        {"name": "Food", "total": 77.90, "percent": 27},
-        {"name": "Bills", "total": 89.99, "percent": 31},
-        {"name": "Shopping", "total": 60.20, "percent": 21},
-        {"name": "Transport", "total": 12.00, "percent": 4},
-        {"name": "Health", "total": 25.00, "percent": 9},
-        {"name": "Entertainment", "total": 15.75, "percent": 5},
-        {"name": "Other", "total": 8.30, "percent": 3},
-    ]
+    profile_info = get_user_profile_info(user_id)
+    stats = get_summary_stats(user_id)
+    transactions = get_recent_transactions(user_id)
+    categories = get_category_breakdown(user_id)
 
     return render_template(
         "profile.html",
-        member_since="August 2026",
+        member_since=profile_info["member_since"],
         stats=stats,
         transactions=transactions,
         categories=categories,
