@@ -21,6 +21,8 @@ def inject_current_user():
 
 @app.route("/")
 def landing():
+    if session.get("user_id"):
+        return redirect(url_for("profile"))
     return render_template("landing.html")
 
 
@@ -54,6 +56,9 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if session.get("user_id"):
+        return redirect(url_for("profile"))
+
     if request.method == "POST":
         email = request.form.get("email", "").strip()
         password = request.form.get("password", "")
@@ -68,7 +73,7 @@ def login():
             return render_template("login.html")
 
         session["user_id"] = user["id"]
-        return redirect(url_for("landing"))
+        return redirect(url_for("profile"))
 
     return render_template("login.html")
 
@@ -95,7 +100,40 @@ def logout():
 
 @app.route("/profile")
 def profile():
-    return "Profile page — coming in Step 4"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    stats = {
+        "total_spent": 289.14,
+        "transaction_count": 8,
+        "top_category": "Food",
+    }
+
+    transactions = [
+        {"date": "2026-08-20", "description": "Dinner with friends", "category": "Food", "amount": 32.40},
+        {"date": "2026-08-18", "description": "Miscellaneous", "category": "Other", "amount": 8.30},
+        {"date": "2026-08-15", "description": "New shoes", "category": "Shopping", "amount": 60.20},
+        {"date": "2026-08-12", "description": "Movie ticket", "category": "Entertainment", "amount": 15.75},
+        {"date": "2026-08-09", "description": "Pharmacy purchase", "category": "Health", "amount": 25.00},
+    ]
+
+    categories = [
+        {"name": "Food", "total": 77.90, "percent": 27},
+        {"name": "Bills", "total": 89.99, "percent": 31},
+        {"name": "Shopping", "total": 60.20, "percent": 21},
+        {"name": "Transport", "total": 12.00, "percent": 4},
+        {"name": "Health", "total": 25.00, "percent": 9},
+        {"name": "Entertainment", "total": 15.75, "percent": 5},
+        {"name": "Other", "total": 8.30, "percent": 3},
+    ]
+
+    return render_template(
+        "profile.html",
+        member_since="August 2026",
+        stats=stats,
+        transactions=transactions,
+        categories=categories,
+    )
 
 
 @app.route("/expenses/add")
