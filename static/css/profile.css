@@ -1,0 +1,229 @@
+/* ------------------------------------------------------------------ */
+/* Profile page                                                        */
+/* ------------------------------------------------------------------ */
+
+.profile-section {
+    padding: 3rem 2rem 4rem;
+}
+
+.profile-inner {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.profile-card {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.75rem;
+}
+
+.profile-card-title {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--ink);
+    margin-bottom: 1.25rem;
+}
+
+/* Info card */
+
+.profile-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.profile-avatar {
+    flex-shrink: 0;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-name {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.6rem;
+    color: var(--ink);
+}
+
+.profile-email {
+    color: var(--ink-muted);
+    font-size: 0.95rem;
+    margin-top: 0.15rem;
+}
+
+.profile-since {
+    color: var(--ink-faint);
+    font-size: 0.85rem;
+    margin-top: 0.35rem;
+}
+
+/* Stats row */
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.stat-label {
+    color: var(--ink-muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1.5rem;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Transaction table */
+
+.profile-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.profile-table th {
+    text-align: left;
+    color: var(--ink-muted);
+    font-weight: 500;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.profile-table td {
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--border-soft);
+    color: var(--ink-soft);
+}
+
+.profile-table tr:last-child td {
+    border-bottom: none;
+}
+
+.profile-table tr:hover td {
+    background: var(--paper-warm);
+}
+
+.align-right {
+    text-align: right;
+}
+
+.amount {
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+/* Category badges */
+
+.category-badge {
+    display: inline-block;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    background: var(--accent-light);
+    color: var(--accent);
+}
+
+.category-badge--bills,
+.category-badge--health {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+.category-badge--shopping,
+.category-badge--entertainment {
+    background: var(--accent-2-light);
+    color: var(--accent-2);
+}
+
+/* Category breakdown */
+
+.category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.category-row-top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+}
+
+.category-row-name {
+    color: var(--ink);
+    font-weight: 500;
+}
+
+.category-row-amount {
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.category-bar {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--paper-warm);
+    overflow: hidden;
+}
+
+.category-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--accent);
+    width: 0;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+    .profile-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-info {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .profile-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
