@@ -12,11 +12,32 @@
     <div class="profile-inner">
 
         <div class="profile-card profile-info">
-            <div class="profile-avatar">{{ current_user['name'][:2] | upper }}</div>
+            <div class="profile-avatar-wrap">
+                {% if current_user['photo_filename'] %}
+                <img class="profile-avatar-img" src="{{ url_for('static', filename='uploads/profile_photos/' + current_user['photo_filename']) }}" alt="{{ current_user['name'] }}'s profile photo">
+                {% else %}
+                <div class="profile-avatar">{{ current_user['name'][:2] | upper }}</div>
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('profile_photo') }}" enctype="multipart/form-data" class="avatar-photo-form">
+                    <input type="file" name="photo" accept=".jpg,.jpeg,.png" class="avatar-file-input" data-photo-input>
+                    <button type="button" class="avatar-camera-btn" data-photo-trigger aria-label="Change profile photo">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/>
+                            <circle cx="12" cy="14" r="3.5"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
             <div class="profile-info-text">
                 <h1 class="profile-name">{{ current_user['name'] }}</h1>
                 <p class="profile-email">{{ current_user['email'] }}</p>
                 <p class="profile-since">Member since {{ member_since }}</p>
+                {% if current_user['photo_filename'] %}
+                <form method="POST" action="{{ url_for('remove_profile_photo') }}" class="profile-remove-photo-form">
+                    <button type="submit" class="profile-change-photo-link profile-remove-photo-btn">Remove photo</button>
+                </form>
+                {% endif %}
             </div>
         </div>
 
