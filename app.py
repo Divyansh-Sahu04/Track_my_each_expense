@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import date, datetime
 
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import check_password_hash
@@ -104,16 +105,70 @@ def logout():
     return redirect(url_for("landing"))
 
 
+def _parse_date(value):
+    """Return value if it's a well-formed YYYY-MM-DD date string, else None."""
+    if not value:
+        return None
+    try:
+        datetime.strptime(value, "%Y-%m-%d")
+    except ValueError:
+        return None
+    return value
+
+
+def _months_ago(d, months):
+    """Return the date `months` calendar months before `d`, clamping the day
+    to the target month's length (e.g. Jan 31 - 1 month -> Dec 31)."""
+    month_index = d.month - 1 - months
+    year = d.year + month_index // 12
+    month = month_index % 12 + 1
+    next_month_first = date(year + 1, 1, 1) if month == 12 else date(year, month + 1, 1)
+    day = min(d.day, (next_month_first - date(year, month, 1)).days)
+    return date(year, month, day)
+
+
+def _resolve_date_filter(args, today):
+    """Read/validate date_from and date_to from query args and figure out
+    which preset (if any) is active. Returns (date_from, date_to,
+    active_preset, presets)."""
+    date_from = _parse_date(args.get("date_from"))
+    date_to = _parse_date(args.get("date_to"))
+
+    if date_from and date_to and date_from > date_to:
+        flash("Start date must be before end date.")
+        date_from, date_to = None, None
+
+    presets = {
+        "this_month": (today.replace(day=1).isoformat(), today.isoformat()),
+        "last_3_months": (_months_ago(today, 3).isoformat(), today.isoformat()),
+        "last_6_months": (_months_ago(today, 6).isoformat(), today.isoformat()),
+    }
+
+    active_preset = "all_time"
+    for name, (preset_from, preset_to) in presets.items():
+        if date_from == preset_from and date_to == preset_to:
+            active_preset = name
+            break
+    else:
+        # none of the presets matched exactly -> a custom range, if any dates were given
+        if date_from or date_to:
+            active_preset = "custom"
+
+    return date_from, date_to, active_preset, presets
+
+
 @app.route("/profile")
 def profile():
     user_id = session.get("user_id")
     if not user_id:
         return redirect(url_for("login"))
 
+    date_from, date_to, active_preset, presets = _resolve_date_filter(request.args, date.today())
+
     profile_info = get_user_profile_info(user_id)
-    stats = get_summary_stats(user_id)
-    transactions = get_recent_transactions(user_id)
-    categories = get_category_breakdown(user_id)
+    stats = get_summary_stats(user_id, date_from, date_to)
+    transactions = get_recent_transactions(user_id, date_from=date_from, date_to=date_to)
+    categories = get_category_breakdown(user_id, date_from, date_to)
 
     return render_template(
         "profile.html",
@@ -121,6 +176,10 @@ def profile():
         stats=stats,
         transactions=transactions,
         categories=categories,
+        date_from=date_from,
+        date_to=date_to,
+        active_preset=active_preset,
+        presets=presets,
     )
 
 

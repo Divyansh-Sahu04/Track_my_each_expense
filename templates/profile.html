@@ -20,6 +20,36 @@
             </div>
         </div>
 
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="flash-error">{{ messages[0] }}</div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="profile-card filter-bar">
+            <div class="filter-presets">
+                <a href="{{ url_for('profile', date_from=presets['this_month'][0], date_to=presets['this_month'][1]) }}"
+                   class="filter-preset {% if active_preset == 'this_month' %}filter-preset--active{% endif %}">This Month</a>
+                <a href="{{ url_for('profile', date_from=presets['last_3_months'][0], date_to=presets['last_3_months'][1]) }}"
+                   class="filter-preset {% if active_preset == 'last_3_months' %}filter-preset--active{% endif %}">Last 3 Months</a>
+                <a href="{{ url_for('profile', date_from=presets['last_6_months'][0], date_to=presets['last_6_months'][1]) }}"
+                   class="filter-preset {% if active_preset == 'last_6_months' %}filter-preset--active{% endif %}">Last 6 Months</a>
+                <a href="{{ url_for('profile') }}"
+                   class="filter-preset {% if active_preset == 'all_time' %}filter-preset--active{% endif %}">All Time</a>
+            </div>
+            <form method="GET" action="{{ url_for('profile') }}" class="filter-custom {% if active_preset == 'custom' %}filter-custom--active{% endif %}">
+                <div class="form-group">
+                    <label for="date_from">From</label>
+                    <input type="date" id="date_from" name="date_from" class="form-input" value="{{ date_from or '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="date_to">To</label>
+                    <input type="date" id="date_to" name="date_to" class="form-input" value="{{ date_to or '' }}">
+                </div>
+                <button type="submit" class="btn-primary">Apply</button>
+            </form>
+        </div>
+
         <div class="profile-stats">
             <div class="stat-card">
                 <span class="stat-label">Total spent</span>
