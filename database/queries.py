@@ -125,3 +125,17 @@ def get_category_breakdown(user_id, date_from=None, date_to=None):
         largest["percent"] += remainder
 
     return breakdown
+
+
+def insert_expense(user_id, amount, category, date, description):
+    """Insert a new expense row. description may be None."""
+    conn = get_db()
+    try:
+        conn.execute(
+            "INSERT INTO expenses (user_id, amount, category, date, description) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (user_id, amount, category, date, description),
+        )
+        conn.commit()
+    finally:
+        conn.close()

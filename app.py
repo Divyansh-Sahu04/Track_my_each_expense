@@ -10,10 +10,16 @@ from database.queries import (
     get_summary_stats,
     get_recent_transactions,
     get_category_breakdown,
+    insert_expense,
 )
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-key-change-in-production"
+
+EXPENSE_CATEGORIES = [
+    "Food", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Other",
+]
+MAX_EXPENSE_AMOUNT = 1_000_000
 
 
 @app.context_processor
@@ -183,9 +189,94 @@ def profile():
     )
 
 
-@app.route("/expenses/add")
+@app.route("/analytics")
+def analytics():
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+    return render_template("analytics.html")
+
+
+def _render_add_expense_form(amount="", category="", date_value="", description=""):
+    return render_template(
+        "add_expense.html",
+        categories=EXPENSE_CATEGORIES,
+        amount=amount,
+        category=category,
+        date=date_value,
+        description=description,
+    )
+
+
+def _validate_expense_form(form):
+    """Validate raw add-expense form fields.
+
+    Returns a dict with `error` (None if valid), the parsed `amount`
+    (float) and `description` (str or None) ready for insertion, and the
+    raw submitted strings (`amount_raw`/`description_raw`) needed to
+    redisplay exactly what the user typed if validation fails.
+    """
+    amount_raw = form.get("amount", "")
+    category = form.get("category", "")
+    date_raw = form.get("date", "")
+    description_raw = form.get("description", "")
+
+    error = None
+    amount = None
+    if not amount_raw:
+        error = "Amount is required."
+    else:
+        try:
+            amount = float(amount_raw)
+            if amount <= 0:
+                error = "Amount must be greater than zero."
+            elif amount > MAX_EXPENSE_AMOUNT:
+                error = f"Amount must be {MAX_EXPENSE_AMOUNT:,} or less."
+        except ValueError:
+            error = "Amount must be a valid number."
+
+    if not error and category not in EXPENSE_CATEGORIES:
+        error = "Please choose a valid category."
+
+    if not error and not _parse_date(date_raw):
+        error = "Please enter a valid date."
+
+    description = description_raw.strip() or None
+    if not error and description and len(description) > 200:
+        error = "Description must be 200 characters or fewer."
+
+    return {
+        "error": error,
+        "amount": amount,
+        "category": category,
+        "date": date_raw,
+        "description": description,
+        "amount_raw": amount_raw,
+        "description_raw": description_raw,
+    }
+
+
+@app.route("/expenses/add", methods=["GET", "POST"])
 def add_expense():
-    return "Add expense — coming in Step 7"
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("login"))
+
+    if request.method == "GET":
+        return _render_add_expense_form(date_value=date.today().isoformat())
+
+    result = _validate_expense_form(request.form)
+    if result["error"]:
+        flash(result["error"])
+        return _render_add_expense_form(
+            amount=result["amount_raw"],
+            category=result["category"],
+            date_value=result["date"],
+            description=result["description_raw"],
+        )
+
+    insert_expense(user_id, result["amount"], result["category"], result["date"], result["description"])
+    flash("Expense added.")
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/edit")
