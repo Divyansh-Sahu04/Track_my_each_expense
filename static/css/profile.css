@@ -29,6 +29,17 @@
     margin-bottom: 1.25rem;
 }
 
+.profile-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.profile-card-header .profile-card-title {
+    margin-bottom: 0;
+}
+
 /* Info card */
 
 .profile-info {
