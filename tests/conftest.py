@@ -1,6 +1,7 @@
 import os
 import sys
 import tempfile
+from datetime import date, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -70,6 +71,44 @@ def fresh_user(temp_db):
         ("New User", "new@spendly.com", generate_password_hash("newpass123")),
     )
     user_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return user_id
+
+
+def _days_before(days):
+    """Return an ISO date string `days` before today."""
+    return (date.today() - timedelta(days=days)).isoformat()
+
+
+@pytest.fixture
+def multi_month_user(temp_db):
+    """A user with expenses spread across ~8 months, for date-filter tests.
+    Dates use generous day-offsets (not exact calendar months) relative to
+    today, so preset boundary math staying off by a day or two never flips
+    which preset an expense falls into."""
+    from werkzeug.security import generate_password_hash
+
+    expenses = [
+        (50.00, "Food", _days_before(250), "Outside every preset but All Time"),
+        (40.00, "Bills", _days_before(150), "Within Last 6 Months only"),
+        (30.00, "Transport", _days_before(60), "Within Last 3 Months and Last 6 Months"),
+        (25.00, "Health", _days_before(0), "Within every preset (today)"),
+    ]
+
+    conn = db.get_db()
+    cursor = conn.execute(
+        "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
+        ("Multi Month User", "multimonth@spendly.com", generate_password_hash("test123")),
+    )
+    user_id = cursor.lastrowid
+    conn.executemany(
+        """
+        INSERT INTO expenses (user_id, amount, category, date, description)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        [(user_id, *row) for row in expenses],
+    )
     conn.commit()
     conn.close()
     return user_id
