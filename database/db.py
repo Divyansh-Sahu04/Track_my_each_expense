@@ -19,7 +19,8 @@ def init_db():
             name TEXT NOT NULL,
             email TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
-            created_at TEXT DEFAULT (datetime('now'))
+            created_at TEXT DEFAULT (datetime('now')),
+            photo_filename TEXT
         )
     """)
     conn.execute("""
@@ -101,5 +102,29 @@ def create_user(name, email, password):
         )
         conn.commit()
         return cursor.lastrowid
+    finally:
+        conn.close()
+
+
+def update_user_photo(user_id, filename):
+    conn = get_db()
+    try:
+        conn.execute(
+            "UPDATE users SET photo_filename = ? WHERE id = ?",
+            (filename, user_id),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def remove_user_photo(user_id):
+    conn = get_db()
+    try:
+        conn.execute(
+            "UPDATE users SET photo_filename = NULL WHERE id = ?",
+            (user_id,),
+        )
+        conn.commit()
     finally:
         conn.close()

@@ -63,6 +63,74 @@
     justify-content: center;
 }
 
+.profile-avatar-img {
+    flex-shrink: 0;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profile-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+    width: 72px;
+    height: 72px;
+}
+
+.avatar-file-input {
+    display: none;
+}
+
+.avatar-photo-form {
+    display: contents;
+}
+
+.avatar-camera-btn {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--paper-card);
+    border: 2px solid var(--paper-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+.avatar-camera-btn:hover {
+    background: var(--ink);
+}
+
+.profile-change-photo-link {
+    display: inline-block;
+    margin-top: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--accent);
+}
+
+.profile-change-photo-link:hover {
+    text-decoration: underline;
+}
+
+.profile-remove-photo-form {
+    margin: 0;
+}
+
+.profile-remove-photo-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    padding: 0;
+}
+
 .profile-name {
     font-family: var(--font-display);
     font-weight: 400;

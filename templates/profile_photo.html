@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Change Photo — Spendly{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_photo.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<section class="auth-section">
+    <div class="auth-container">
+
+        <div class="auth-header">
+            <h1 class="auth-title">Change your photo</h1>
+            <p class="auth-subtitle">Upload a picture to personalize your profile</p>
+        </div>
+
+        <div class="auth-card">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class="auth-error">{{ messages[0] }}</div>
+            {% endif %}
+            {% endwith %}
+
+            <div class="photo-preview">
+                {% if current_user['photo_filename'] %}
+                <img class="profile-avatar-img" src="{{ url_for('static', filename='uploads/profile_photos/' + current_user['photo_filename']) }}" alt="{{ current_user['name'] }}'s profile photo">
+                {% else %}
+                <div class="profile-avatar">{{ current_user['name'][:2] | upper }}</div>
+                {% endif %}
+            </div>
+
+            <form method="POST" action="{{ url_for('profile_photo') }}" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="photo">Choose a photo</label>
+                    <input type="file" id="photo" name="photo" class="form-input" accept=".jpg,.jpeg,.png" required>
+                </div>
+
+                <button type="submit" class="btn-submit">Upload Photo</button>
+            </form>
+
+            {% if current_user['photo_filename'] %}
+            <form method="POST" action="{{ url_for('remove_profile_photo') }}" class="remove-photo-form">
+                <button type="submit" class="btn-ghost">Remove photo</button>
+            </form>
+            {% endif %}
+        </div>
+
+        <p class="auth-switch">
+            <a href="{{ url_for('profile') }}">Cancel and go back to profile</a>
+        </p>
+
+    </div>
+</section>
+
+{% endblock %}

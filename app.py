@@ -1,10 +1,21 @@
+import os
 import sqlite3
 from datetime import date, datetime
 
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import check_password_hash
+from werkzeug.utils import secure_filename
 
-from database.db import get_db, init_db, seed_db, create_user, get_user_by_email, get_user_by_id
+from database.db import (
+    get_db,
+    init_db,
+    seed_db,
+    create_user,
+    get_user_by_email,
+    get_user_by_id,
+    update_user_photo,
+    remove_user_photo,
+)
 from database.queries import (
     get_user_profile_info,
     get_summary_stats,
@@ -20,6 +31,10 @@ EXPENSE_CATEGORIES = [
     "Food", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Other",
 ]
 MAX_EXPENSE_AMOUNT = 1_000_000
+
+ALLOWED_PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png"}
+MAX_PHOTO_SIZE = 2 * 1024 * 1024  # 2 MB
+UPLOAD_FOLDER = os.path.join(app.root_path, "static", "uploads", "profile_photos")
 
 
 @app.context_processor
@@ -276,6 +291,91 @@ def add_expense():
 
     insert_expense(user_id, result["amount"], result["category"], result["date"], result["description"])
     flash("Expense added.")
+    return redirect(url_for("profile"))
+
+
+def _render_profile_photo_form():
+    return render_template("profile_photo.html")
+
+
+def _validate_photo_upload(uploaded_file):
+    """Validate an uploaded profile photo.
+
+    Returns a dict with `error` (None if valid) and `extension` (the
+    lowercased, whitelisted file extension, or None if invalid).
+    """
+    if uploaded_file is None or uploaded_file.filename == "":
+        return {"error": "Please choose a photo to upload.", "extension": None}
+
+    safe_name = secure_filename(uploaded_file.filename)
+    extension = os.path.splitext(safe_name)[1].lower()
+    if extension not in ALLOWED_PHOTO_EXTENSIONS:
+        return {"error": "Only .jpg, .jpeg, and .png files are allowed.", "extension": None}
+
+    # Determine the real byte size ourselves — never trust the client's
+    # Content-Type or Content-Length.
+    uploaded_file.stream.seek(0, os.SEEK_END)
+    size = uploaded_file.stream.tell()
+    uploaded_file.stream.seek(0)
+
+    if size == 0:
+        return {"error": "Uploaded file is empty.", "extension": None}
+    if size > MAX_PHOTO_SIZE:
+        return {"error": "Photo must be 2MB or smaller.", "extension": None}
+
+    return {"error": None, "extension": extension}
+
+
+def _delete_existing_photo_file(photo_filename):
+    if not photo_filename:
+        return
+    path = os.path.join(UPLOAD_FOLDER, photo_filename)
+    if os.path.exists(path):
+        os.remove(path)
+
+
+@app.route("/profile/photo", methods=["GET", "POST"])
+def profile_photo():
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("login"))
+
+    if request.method == "GET":
+        return _render_profile_photo_form()
+
+    uploaded_file = request.files.get("photo")
+    result = _validate_photo_upload(uploaded_file)
+    if result["error"]:
+        flash(result["error"])
+        return _render_profile_photo_form()
+
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+    current_user = get_user_by_id(user_id)
+    old_filename = current_user["photo_filename"]
+    new_filename = f"user_{user_id}{result['extension']}"
+
+    if old_filename and old_filename != new_filename:
+        _delete_existing_photo_file(old_filename)
+
+    uploaded_file.save(os.path.join(UPLOAD_FOLDER, new_filename))
+    update_user_photo(user_id, new_filename)
+
+    flash("Profile photo updated.")
+    return redirect(url_for("profile"))
+
+
+@app.route("/profile/photo/remove", methods=["POST"])
+def remove_profile_photo():
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("login"))
+
+    current_user = get_user_by_id(user_id)
+    _delete_existing_photo_file(current_user["photo_filename"])
+    remove_user_photo(user_id)
+
+    flash("Profile photo removed.")
     return redirect(url_for("profile"))
 
 
