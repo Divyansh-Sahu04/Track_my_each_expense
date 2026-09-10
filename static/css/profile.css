@@ -273,6 +273,113 @@
     flex-shrink: 0;
 }
 
+.delete-form {
+    display: inline-flex;
+    margin-left: 0.35rem;
+}
+
+.delete-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--danger);
+    font: inherit;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.delete-btn:hover {
+    border-color: var(--danger-border);
+    background: var(--danger-light);
+}
+
+.delete-btn-icon {
+    flex-shrink: 0;
+}
+
+/* Delete confirmation modal */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 100;
+}
+
+.modal-overlay[hidden] {
+    display: none;
+}
+
+.modal-card {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.75rem;
+    max-width: 360px;
+    width: 100%;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+.modal-title {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+}
+
+.modal-text {
+    color: var(--ink-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.btn-modal-cancel,
+.btn-modal-confirm {
+    padding: 0.55rem 1.1rem;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.btn-modal-cancel {
+    background: transparent;
+    color: var(--ink-soft);
+}
+
+.btn-modal-cancel:hover {
+    border-color: var(--ink-soft);
+}
+
+.btn-modal-confirm {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: var(--paper-card);
+}
+
+.btn-modal-confirm:hover {
+    background: var(--danger-border);
+    border-color: var(--danger-border);
+}
+
 /* Category breakdown */
 
 .category-list {
@@ -321,6 +428,11 @@
     border-radius: var(--radius-sm);
     padding: 0.75rem 1rem;
     font-size: 0.875rem;
+    transition: opacity 0.5s ease;
+}
+
+.flash-error--fade-out {
+    opacity: 0;
 }
 
 /* Filter bar */
