@@ -15,6 +15,7 @@ from database.db import (
     get_user_by_id,
     update_user_photo,
     remove_user_photo,
+    update_theme_preference,
 )
 from database.queries import (
     get_user_profile_info,
@@ -31,6 +32,7 @@ EXPENSE_CATEGORIES = [
     "Food", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Other",
 ]
 MAX_EXPENSE_AMOUNT = 1_000_000
+ALLOWED_THEMES = {"system", "light", "dark"}
 
 ALLOWED_PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 MAX_PHOTO_SIZE = 2 * 1024 * 1024  # 2 MB
@@ -377,6 +379,35 @@ def remove_profile_photo():
 
     flash("Profile photo removed.")
     return redirect(url_for("profile"))
+
+
+def _safe_next_path(next_path):
+    """Only allow redirecting back to a same-site path, never an external URL."""
+    if (
+        next_path
+        and next_path.startswith("/")
+        and not next_path.startswith("//")
+        and "\\" not in next_path
+    ):
+        return next_path
+    return url_for("profile")
+
+
+@app.route("/profile/appearance", methods=["POST"])
+def update_appearance():
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("login"))
+
+    next_path = _safe_next_path(request.form.get("next"))
+
+    theme = request.form.get("theme")
+    if theme not in ALLOWED_THEMES:
+        flash("Please choose a valid appearance option.")
+        return redirect(next_path)
+
+    update_theme_preference(user_id, theme)
+    return redirect(next_path)
 
 
 @app.route("/expenses/<int:id>/edit")

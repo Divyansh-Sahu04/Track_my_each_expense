@@ -19,6 +19,16 @@
     --border: #e4e1da;
     --border-soft: #eeebe4;
 
+    --success: #2f9e63;
+    --success-light: #e5f6ec;
+    --demo-red: #e2867d;
+    --demo-yellow: #e8b86a;
+    --demo-green: #93cead;
+    --chart-food: #eb9d3c;
+    --chart-travel: #4f7fd6;
+    --chart-bills: #8b6fd1;
+    --danger-border: #f5c6c2;
+
     --font-display: 'DM Serif Display', Georgia, serif;
     --font-body: 'DM Sans', system-ui, sans-serif;
 
@@ -28,6 +38,34 @@
     --radius-sm: 6px;
     --radius-md: 12px;
     --radius-lg: 20px;
+}
+
+[data-theme="dark"] {
+    --ink: #f2f1ee;
+    --ink-soft: #d4d2cb;
+    --ink-muted: #9b9992;
+    --ink-faint: #6e6c66;
+    --paper: #15150f;
+    --paper-warm: #1c1c16;
+    --paper-card: #201f1a;
+    --accent: #4caf7d;
+    --accent-light: #1e3327;
+    --accent-2: #e0a458;
+    --accent-2-light: #3a2c17;
+    --danger: #e2685a;
+    --danger-light: #3a201d;
+    --border: #33322b;
+    --border-soft: #262620;
+
+    --success: #45b878;
+    --success-light: #1c3327;
+    --demo-red: #e2867d;
+    --demo-yellow: #e8b86a;
+    --demo-green: #93cead;
+    --chart-food: #eb9d3c;
+    --chart-travel: #6d93e0;
+    --chart-bills: #a58ce0;
+    --danger-border: #5a2e29;
 }
 
 /* ------------------------------------------------------------------ */
@@ -117,6 +155,40 @@ a { color: inherit; text-decoration: none; }
 
 .nav-cta:hover { background: var(--accent) !important; }
 
+.theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    background: var(--paper-warm);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.2rem;
+}
+
+.theme-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--ink-muted);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s, color 0.2s;
+}
+
+.theme-toggle-btn:hover { color: var(--ink); }
+
+.theme-toggle-btn--active {
+    background: var(--accent);
+    color: var(--paper);
+}
+
+.theme-toggle-form { display: none; }
+
 /* ------------------------------------------------------------------ */
 /* Main                                                                */
 /* ------------------------------------------------------------------ */
@@ -143,8 +215,8 @@ a { color: inherit; text-decoration: none; }
     display: inline-flex;
     align-items: center;
     gap: 0.55rem;
-    background: #e5f6ec;
-    color: #2f9e63;
+    background: var(--success-light);
+    color: var(--success);
     font-size: 0.9rem;
     font-weight: 500;
     padding: 0.55rem 1.25rem;
@@ -156,7 +228,7 @@ a { color: inherit; text-decoration: none; }
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #2f9e63;
+    background: var(--success);
     display: inline-block;
 }
 
@@ -171,7 +243,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 .hero-accent {
-    color: #2f9e63;
+    color: var(--success);
 }
 
 .hero-subtitle {
@@ -237,9 +309,9 @@ a { color: inherit; text-decoration: none; }
     border-radius: 50%;
 }
 
-.mock-dot-red { background: #e2867d; }
-.mock-dot-yellow { background: #e8b86a; }
-.mock-dot-green { background: #93cead; }
+.mock-dot-red { background: var(--demo-red); }
+.mock-dot-yellow { background: var(--demo-yellow); }
+.mock-dot-green { background: var(--demo-green); }
 
 .mock-stats {
     display: grid;
@@ -277,7 +349,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 .mock-stat-delta-neg { color: var(--danger); }
-.mock-stat-delta-pos { color: #2f9e63; }
+.mock-stat-delta-pos { color: var(--success); }
 .mock-stat-delta-neutral { color: var(--ink-faint); }
 
 .mock-bars-card {
@@ -316,9 +388,9 @@ a { color: inherit; text-decoration: none; }
     transition: width 0.6s ease;
 }
 
-.mock-bar-food { background: #eb9d3c; }
-.mock-bar-travel { background: #4f7fd6; }
-.mock-bar-bills { background: #8b6fd1; }
+.mock-bar-food { background: var(--chart-food); }
+.mock-bar-travel { background: var(--chart-travel); }
+.mock-bar-bills { background: var(--chart-bills); }
 
 /* ------------------------------------------------------------------ */
 /* Buttons                                                             */
@@ -477,7 +549,7 @@ a { color: inherit; text-decoration: none; }
 .auth-error {
     background: var(--danger-light);
     color: var(--danger);
-    border: 1px solid #f5c6c2;
+    border: 1px solid var(--danger-border);
     border-radius: var(--radius-sm);
     padding: 0.75rem 1rem;
     font-size: 0.875rem;
