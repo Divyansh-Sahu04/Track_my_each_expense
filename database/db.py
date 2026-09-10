@@ -20,7 +20,8 @@ def init_db():
             email TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
             created_at TEXT DEFAULT (datetime('now')),
-            photo_filename TEXT
+            photo_filename TEXT,
+            theme_preference TEXT NOT NULL DEFAULT 'system'
         )
     """)
     conn.execute("""
@@ -35,6 +36,16 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users (id)
         )
     """)
+
+    # CREATE TABLE IF NOT EXISTS is a no-op against a users table that
+    # already existed before theme_preference was added, so back-fill the
+    # column here for databases created by an earlier version of the schema.
+    existing_columns = {row["name"] for row in conn.execute("PRAGMA table_info(users)")}
+    if "theme_preference" not in existing_columns:
+        conn.execute(
+            "ALTER TABLE users ADD COLUMN theme_preference TEXT NOT NULL DEFAULT 'system'"
+        )
+
     conn.commit()
     conn.close()
 
@@ -124,6 +135,18 @@ def remove_user_photo(user_id):
         conn.execute(
             "UPDATE users SET photo_filename = NULL WHERE id = ?",
             (user_id,),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def update_theme_preference(user_id, theme):
+    conn = get_db()
+    try:
+        conn.execute(
+            "UPDATE users SET theme_preference = ? WHERE id = ?",
+            (theme, user_id),
         )
         conn.commit()
     finally:
