@@ -2,7 +2,16 @@ import os
 import sqlite3
 from datetime import date, datetime
 
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import (
+    Flask,
+    abort,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    session,
+    flash,
+)
 from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
 
@@ -23,13 +32,21 @@ from database.queries import (
     get_recent_transactions,
     get_category_breakdown,
     insert_expense,
+    get_expense_by_id,
+    update_expense,
 )
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-key-change-in-production"
 
 EXPENSE_CATEGORIES = [
-    "Food", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Other",
+    "Food",
+    "Transport",
+    "Bills",
+    "Health",
+    "Entertainment",
+    "Shopping",
+    "Other",
 ]
 MAX_EXPENSE_AMOUNT = 1_000_000
 ALLOWED_THEMES = {"system", "light", "dark"}
@@ -48,6 +65,7 @@ def inject_current_user():
 # ------------------------------------------------------------------ #
 # Routes                                                              #
 # ------------------------------------------------------------------ #
+
 
 @app.route("/")
 def landing():
@@ -122,6 +140,7 @@ def privacy():
 # Placeholder routes — students will implement these                  #
 # ------------------------------------------------------------------ #
 
+
 @app.route("/logout")
 def logout():
     session.clear()
@@ -186,11 +205,15 @@ def profile():
     if not user_id:
         return redirect(url_for("login"))
 
-    date_from, date_to, active_preset, presets = _resolve_date_filter(request.args, date.today())
+    date_from, date_to, active_preset, presets = _resolve_date_filter(
+        request.args, date.today()
+    )
 
     profile_info = get_user_profile_info(user_id)
     stats = get_summary_stats(user_id, date_from, date_to)
-    transactions = get_recent_transactions(user_id, date_from=date_from, date_to=date_to)
+    transactions = get_recent_transactions(
+        user_id, date_from=date_from, date_to=date_to
+    )
     categories = get_category_breakdown(user_id, date_from, date_to)
 
     return render_template(
@@ -213,9 +236,12 @@ def analytics():
     return render_template("analytics.html")
 
 
-def _render_add_expense_form(amount="", category="", date_value="", description=""):
+def _render_expense_form(
+    template, expense_id=None, amount="", category="", date_value="", description=""
+):
     return render_template(
-        "add_expense.html",
+        template,
+        expense_id=expense_id,
         categories=EXPENSE_CATEGORIES,
         amount=amount,
         category=category,
@@ -279,19 +305,28 @@ def add_expense():
         return redirect(url_for("login"))
 
     if request.method == "GET":
-        return _render_add_expense_form(date_value=date.today().isoformat())
+        return _render_expense_form(
+            "add_expense.html", date_value=date.today().isoformat()
+        )
 
     result = _validate_expense_form(request.form)
     if result["error"]:
         flash(result["error"])
-        return _render_add_expense_form(
+        return _render_expense_form(
+            "add_expense.html",
             amount=result["amount_raw"],
             category=result["category"],
             date_value=result["date"],
             description=result["description_raw"],
         )
 
-    insert_expense(user_id, result["amount"], result["category"], result["date"], result["description"])
+    insert_expense(
+        user_id,
+        result["amount"],
+        result["category"],
+        result["date"],
+        result["description"],
+    )
     flash("Expense added.")
     return redirect(url_for("profile"))
 
@@ -312,7 +347,10 @@ def _validate_photo_upload(uploaded_file):
     safe_name = secure_filename(uploaded_file.filename)
     extension = os.path.splitext(safe_name)[1].lower()
     if extension not in ALLOWED_PHOTO_EXTENSIONS:
-        return {"error": "Only .jpg, .jpeg, and .png files are allowed.", "extension": None}
+        return {
+            "error": "Only .jpg, .jpeg, and .png files are allowed.",
+            "extension": None,
+        }
 
     # Determine the real byte size ourselves — never trust the client's
     # Content-Type or Content-Length.
@@ -410,9 +448,56 @@ def update_appearance():
     return redirect(next_path)
 
 
-@app.route("/expenses/<int:id>/edit")
+def _render_edit_expense_get(expense_id, expense):
+    return _render_expense_form(
+        "edit_expense.html",
+        expense_id=expense_id,
+        amount=expense["amount"],
+        category=expense["category"],
+        date_value=expense["date"],
+        description=expense["description"] or "",
+    )
+
+
+def _handle_edit_expense_post(expense_id, user_id, form):
+    result = _validate_expense_form(form)
+    if result["error"]:
+        flash(result["error"])
+        return _render_expense_form(
+            "edit_expense.html",
+            expense_id=expense_id,
+            amount=result["amount_raw"],
+            category=result["category"],
+            date_value=result["date"],
+            description=result["description_raw"],
+        )
+
+    update_expense(
+        expense_id,
+        user_id,
+        result["amount"],
+        result["category"],
+        result["date"],
+        result["description"],
+    )
+    flash("Expense updated.")
+    return redirect(url_for("profile"))
+
+
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
 def edit_expense(id):
-    return "Edit expense — coming in Step 8"
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("login"))
+
+    expense = get_expense_by_id(id, user_id)
+    if expense is None:
+        abort(404)
+
+    if request.method == "GET":
+        return _render_edit_expense_get(id, expense)
+
+    return _handle_edit_expense_post(id, user_id, request.form)
 
 
 @app.route("/expenses/<int:id>/delete")

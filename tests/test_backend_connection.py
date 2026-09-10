@@ -2,8 +2,8 @@ import pytest
 
 from database import queries
 
-
 # --- Subagent 1 tests: get_recent_transactions ---
+
 
 def test_recent_transactions_newest_first(seed_user):
     transactions = queries.get_recent_transactions(seed_user)
@@ -16,7 +16,7 @@ def test_recent_transactions_fields(seed_user):
     assert len(transactions) > 0
     for txn in transactions:
         assert isinstance(txn, dict)
-        assert set(txn.keys()) == {"date", "description", "category", "amount"}
+        assert set(txn.keys()) == {"id", "date", "description", "category", "amount"}
 
 
 def test_recent_transactions_empty_for_no_expenses(fresh_user):
@@ -24,6 +24,7 @@ def test_recent_transactions_empty_for_no_expenses(fresh_user):
 
 
 # --- Subagent 2 tests: get_summary_stats ---
+
 
 def test_summary_stats_with_expenses(seed_user):
     stats = queries.get_summary_stats(seed_user)
@@ -40,6 +41,7 @@ def test_summary_stats_no_expenses(fresh_user):
 
 
 # --- Subagent 3 tests: get_category_breakdown ---
+
 
 def test_category_breakdown_with_expenses(seed_user):
     breakdown = queries.get_category_breakdown(seed_user)
@@ -62,6 +64,7 @@ def test_category_breakdown_empty_for_no_expenses(fresh_user):
 
 
 # --- Route tests (integration step) ---
+
 
 def test_profile_redirects_when_not_logged_in(client):
     response = client.get("/profile")
@@ -88,5 +91,13 @@ def test_profile_authenticated_shows_real_data(client, seed_user):
     last_tx_index = body.index("2026-08-02")
     assert first_tx_index < last_tx_index
 
-    for category in ("Food", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Other"):
+    for category in (
+        "Food",
+        "Transport",
+        "Bills",
+        "Health",
+        "Entertainment",
+        "Shopping",
+        "Other",
+    ):
         assert category in body

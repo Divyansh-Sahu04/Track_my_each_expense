@@ -249,6 +249,30 @@
     color: var(--accent-2);
 }
 
+/* Row actions */
+
+.edit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--pure-white);
+    color: var(--pure-black);
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: border-color 0.2s;
+}
+
+.edit-btn:hover {
+    border-color: var(--accent);
+}
+
+.edit-btn-icon {
+    flex-shrink: 0;
+}
+
 /* Category breakdown */
 
 .category-list {
