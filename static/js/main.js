@@ -63,3 +63,59 @@ if (window.matchMedia) {
         }
     });
 }
+
+// Auto-fade flash messages after 5 seconds
+document.querySelectorAll("[data-flash-message]").forEach(function (el) {
+    setTimeout(function () {
+        el.classList.add("flash-error--fade-out");
+        el.addEventListener("transitionend", function () {
+            el.remove();
+        });
+    }, 5000);
+});
+
+// Delete expense confirmation modal
+var deleteModal = document.querySelector("[data-delete-modal]");
+var deleteConfirmBtn = document.querySelector("[data-delete-confirm]");
+var deleteCancelBtn = document.querySelector("[data-delete-cancel]");
+var pendingDeleteForm = null;
+
+function openDeleteModal(form) {
+    pendingDeleteForm = form;
+    if (deleteModal) deleteModal.hidden = false;
+}
+
+function closeDeleteModal() {
+    pendingDeleteForm = null;
+    if (deleteModal) deleteModal.hidden = true;
+}
+
+document.querySelectorAll("[data-delete-trigger]").forEach(function (trigger) {
+    trigger.addEventListener("click", function (event) {
+        var form = trigger.closest("[data-delete-form]");
+        if (!form) return;
+        event.preventDefault();
+        openDeleteModal(form);
+    });
+});
+
+if (deleteConfirmBtn) {
+    deleteConfirmBtn.addEventListener("click", function () {
+        if (pendingDeleteForm) pendingDeleteForm.submit();
+        closeDeleteModal();
+    });
+}
+
+if (deleteCancelBtn) {
+    deleteCancelBtn.addEventListener("click", closeDeleteModal);
+}
+
+if (deleteModal) {
+    deleteModal.addEventListener("click", function (event) {
+        if (event.target === deleteModal) closeDeleteModal();
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !deleteModal.hidden) closeDeleteModal();
+    });
+}
