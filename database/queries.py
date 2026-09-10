@@ -15,9 +15,7 @@ def _date_range_clause(date_from, date_to):
 def get_user_profile_info(user_id):
     """Return dict with name, email, member_since (formatted 'Month YYYY')."""
     conn = get_db()
-    user = conn.execute(
-        "SELECT * FROM users WHERE id = ?", (user_id,)
-    ).fetchone()
+    user = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
     conn.close()
     if user is None:
         return None
@@ -26,8 +24,18 @@ def get_user_profile_info(user_id):
     date_part = created_at.split(" ")[0]
     year, month, _ = date_part.split("-")
     month_name = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December",
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
     ][int(month) - 1]
 
     return {
@@ -42,7 +50,7 @@ def get_recent_transactions(user_id, limit=10, date_from=None, date_to=None):
     conn = get_db()
     date_clause, date_params = _date_range_clause(date_from, date_to)
     query = (
-        "SELECT date, description, category, amount "
+        "SELECT id, date, description, category, amount "
         "FROM expenses "
         "WHERE user_id = ?" + date_clause + " "
         "ORDER BY date DESC LIMIT ?"
@@ -52,6 +60,7 @@ def get_recent_transactions(user_id, limit=10, date_from=None, date_to=None):
     conn.close()
     return [
         {
+            "id": row["id"],
             "date": row["date"],
             "description": row["description"],
             "category": row["category"],
@@ -135,6 +144,32 @@ def insert_expense(user_id, amount, category, date, description):
             "INSERT INTO expenses (user_id, amount, category, date, description) "
             "VALUES (?, ?, ?, ?, ?)",
             (user_id, amount, category, date, description),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def get_expense_by_id(expense_id, user_id):
+    """Return the expense row if it exists and belongs to user_id, else None."""
+    conn = get_db()
+    row = conn.execute(
+        "SELECT * FROM expenses WHERE id = ? AND user_id = ?",
+        (expense_id, user_id),
+    ).fetchone()
+    conn.close()
+    return row
+
+
+def update_expense(expense_id, user_id, amount, category, date, description):
+    """Update an expense's editable fields. Scoped to user_id so a mismatched
+    owner updates zero rows instead of another user's expense."""
+    conn = get_db()
+    try:
+        conn.execute(
+            "UPDATE expenses SET amount = ?, category = ?, date = ?, description = ? "
+            "WHERE id = ? AND user_id = ?",
+            (amount, category, date, description, expense_id, user_id),
         )
         conn.commit()
     finally:
